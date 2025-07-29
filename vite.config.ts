@@ -17,6 +17,8 @@ export default defineConfig({
   preview: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 8080,
     host: '0.0.0.0',
+    allowedHosts:
+      process.env.NODE_ENV === 'production' ? true : ['localhost', '127.0.0.1'],
   },
   build: {
     outDir: 'dist',
