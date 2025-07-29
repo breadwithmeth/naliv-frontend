@@ -1,92 +1,152 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+interface Category {
+  category_id: number
+  name: string
+  photo?: string
+  parent_category: number
+  img?: string
+  visible: number
+  subcategories: Category[]
+  items_count: number
+}
+
+interface CategoriesApiResponse {
+  success: boolean
+  data: {
+    categories: Category[]
+  }
+}
+
 export default function Catalog() {
-  const categories = [
-    {
-      name: '🍷 Вино',
-      description: 'Красное, белое, розовое, игристое',
-      items: ['Шардоне', 'Каберне Совиньон', 'Пино Нуар', 'Просекко'],
-    },
-    {
-      name: '🍺 Пиво',
-      description: 'Светлое, тёмное, крафтовое',
-      items: ['Балтика', 'Хейнекен', 'Стелла Артуа', 'Гиннесс'],
-    },
-    {
-      name: '🥃 Крепкие напитки',
-      description: 'Водка, виски, коньяк, ром',
-      items: ['Абсолют', 'Джек Дэниэлс', 'Хеннесси', 'Бакарди'],
-    },
-    {
-      name: '🍾 Игристые вина',
-      description: 'Шампанское и игристые вина',
-      items: ['Дом Периньон', 'Кристал', 'Советское шампанское', 'Абрау-Дюрсо'],
-    },
-    {
-      name: '🍹 Ликёры',
-      description: 'Сладкие и полусладкие ликёры',
-      items: ['Бейлис', 'Калуа', 'Амаретто', 'Самбука'],
-    },
-    {
-      name: '🍯 Настойки',
-      description: 'Травяные и ягодные настойки',
-      items: ['Егермейстер', 'Бехеровка', 'Кедровка', 'Хреновуха'],
-    },
-  ]
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Каталог товаров
-        </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Широкий ассортимент качественных алкогольных напитков для любого
-          случая
-        </p>
-      </div>
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('http://localhost:3000/api/categories')
+        const data: CategoriesApiResponse = await response.json()
+        
+        if (data.success) {
+          // Фильтруем только основные категории (parent_category = 0)
+          const mainCategories = data.data.categories.filter(cat => cat.parent_category === 0)
+          setCategories(mainCategories)
+        } else {
+          setError('Ошибка загрузки категорий')
+        }
+      } catch (err) {
+        setError('Не удалось подключиться к серверу')
+        console.error('Error fetching categories:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category, index) => (
-          <div
-            key={index}
-            className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+    fetchCategories()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+          <button 
+            onClick={() => window.history.back()}
+            className="mr-3"
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {category.name}
-            </h3>
-            <p className="text-gray-600 mb-4">{category.description}</p>
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-medium flex-1">Каталог</h1>
+        </div>
 
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">Популярные бренды:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                {category.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="flex items-center">
-                    <span className="w-2 h-2 bg-primary-500 rounded-full mr-2"></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button className="mt-4 w-full btn btn-primary">
-              Посмотреть все
-            </button>
+        {/* Loading skeleton */}
+        <div className="px-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            {Array(6).fill(0).map((_, index) => (
+              <div key={index} className="bg-white rounded-lg p-4 animate-pulse">
+                <div className="w-12 h-12 bg-gray-200 rounded-full mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      <div className="mt-12 bg-gradient-to-r from-primary-50 to-primary-100 p-8 rounded-xl text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Не нашли то, что искали?
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Свяжитесь с нами, и мы поможем найти нужный товар или закажем его
-          специально для вас
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="btn btn-primary">📞 Позвонить консультанту</button>
-          <button className="btn btn-secondary">💬 Написать в чат</button>
         </div>
       </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+          <button 
+            onClick={() => window.history.back()}
+            className="mr-3"
+          >
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-medium flex-1">Каталог</h1>
+        </div>
+
+        {/* Error state */}
+        <div className="px-4 py-8 text-center">
+          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-600 mb-2">Ошибка загрузки</h3>
+          <p className="text-gray-500">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+        <button 
+          onClick={() => window.history.back()}
+          className="mr-3"
+        >
+          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-medium flex-1">Каталог</h1>
+      </div>
+
+      {/* Categories Grid */}
+      <div className="px-4 py-4">
+        <div className="grid grid-cols-2 gap-4">
+          {categories.map((category) => (
+            <Link
+              key={category.category_id}
+              to={`/category/${category.category_id}`}
+              className="bg-white rounded-lg p-4 flex flex-col items-center text-center hover:shadow-md transition-shadow"
+            >
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <h3 className="font-medium text-gray-900 text-sm">{category.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">{category.items_count} товаров</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom padding for navigation */}
+      <div className="h-20"></div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 export default function Stores() {
   const stores = [
     {
+      id: 1,
       name: 'Налив на Невском',
       address: 'Невский проспект, 120',
       phone: '+7 (812) 555-01-01',
@@ -8,6 +9,7 @@ export default function Stores() {
       features: ['🚗 Парковка', '📱 Оплата картой', '🚚 Доставка'],
     },
     {
+      id: 2,
       name: 'Градусы24 Центральный',
       address: 'ул. Ленина, 45',
       phone: '+7 (812) 555-02-02',
@@ -19,6 +21,7 @@ export default function Stores() {
       ],
     },
     {
+      id: 3,
       name: 'Налив на Васильевском',
       address: 'Васильевский остров, 15-я линия, 28',
       phone: '+7 (812) 555-03-03',
@@ -26,6 +29,7 @@ export default function Stores() {
       features: ['🚇 У метро', '🍾 Элитный алкоголь', '👥 Консультант'],
     },
     {
+      id: 4,
       name: 'Градусы24 Приморский',
       address: 'Приморский район, ул. Савушкина, 67',
       phone: '+7 (812) 555-04-04',
@@ -33,6 +37,7 @@ export default function Stores() {
       features: ['🏠 Спальный район', '🚚 Быстрая доставка', '💰 Акции'],
     },
     {
+      id: 5,
       name: 'Налив Московский',
       address: 'Московский проспект, 156',
       phone: '+7 (812) 555-05-05',
@@ -40,139 +45,84 @@ export default function Stores() {
       features: ['🚗 Парковка', '🍺 Разливное пиво', '📦 Опт'],
     },
     {
+      id: 6,
       name: 'Градусы24 Калининский',
       address: 'пр. Просвещения, 92',
       phone: '+7 (812) 555-06-06',
       hours: '24/7',
-      features: ['🏢 Новый район', '❄️ Винный погреб', '🎯 Дегустации'],
+      features: ['�� Новый район', '❄️ Винный погреб', '🎯 Дегустации'],
     },
   ]
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Наши магазины</h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Более 50 магазинов по всему городу. Работаем круглосуточно для вашего
-          удобства
-        </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+        <button 
+          onClick={() => window.history.back()}
+          className="mr-3"
+        >
+          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-lg font-medium flex-1">Наши магазины</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {stores.map((store, index) => (
-          <div
-            key={index}
-            className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
-          >
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-              {store.name}
-            </h3>
-
-            <div className="space-y-2 mb-4">
-              <div className="flex items-start">
-                <span className="text-gray-500 mr-2">📍</span>
-                <span className="text-gray-600">{store.address}</span>
+      {/* Content */}
+      <div className="px-4 py-4 space-y-4">
+        {stores.map((store) => (
+          <div key={store.id} className="bg-white rounded-lg p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 mb-1">{store.name}</h3>
+                <p className="text-sm text-gray-500 mb-2">{store.address}</p>
               </div>
-              <div className="flex items-center">
-                <span className="text-gray-500 mr-2">📞</span>
-                <a
-                  href={`tel:${store.phone}`}
-                  className="text-primary-600 hover:underline"
-                >
-                  {store.phone}
-                </a>
-              </div>
-              <div className="flex items-center">
-                <span className="text-gray-500 mr-2">⏰</span>
-                <span className="text-gray-600 font-medium">{store.hours}</span>
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">Особенности:</h4>
-              <div className="flex flex-wrap gap-2">
-                {store.features.map((feature, featureIndex) => (
-                  <span
-                    key={featureIndex}
-                    className="text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded-full"
-                  >
-                    {feature}
-                  </span>
-                ))}
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <span className="text-xs text-gray-600">{store.phone}</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-xs text-gray-600">{store.hours}</span>
               </div>
             </div>
 
-            <div className="mt-4 flex gap-2">
-              <button className="flex-1 btn btn-primary text-sm py-2">
-                📍 На карте
+            <div className="flex flex-wrap gap-2">
+              {store.features.map((feature, index) => (
+                <span key={index} className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                  {feature}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex space-x-2 mt-4">
+              <button className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium">
+                Маршрут
               </button>
-              <button className="flex-1 btn btn-secondary text-sm py-2">
-                🚚 Доставка
+              <button className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium">
+                Позвонить
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-gray-50 p-8 rounded-xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Зона доставки
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Доставляем по всему городу и пригородам. Минимальная сумма заказа
-              — 1000 рублей.
-            </p>
-            <ul className="space-y-2 text-gray-600">
-              <li>
-                🚚 <strong>В пределах города:</strong> 30-60 минут
-              </li>
-              <li>
-                🏘️ <strong>Пригород:</strong> 1-2 часа
-              </li>
-              <li>
-                💰 <strong>Стоимость:</strong> от 200 рублей
-              </li>
-              <li>
-                🆓 <strong>Бесплатно:</strong> при заказе от 3000 рублей
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Как заказать доставку
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <span className="bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5">
-                  1
-                </span>
-                <p className="text-gray-600">
-                  Выберите товары в каталоге или позвоните нам
-                </p>
-              </div>
-              <div className="flex items-start">
-                <span className="bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5">
-                  2
-                </span>
-                <p className="text-gray-600">
-                  Укажите адрес доставки и способ оплаты
-                </p>
-              </div>
-              <div className="flex items-start">
-                <span className="bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5">
-                  3
-                </span>
-                <p className="text-gray-600">
-                  Получите заказ у курьера с проверкой документов
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Bottom padding for navigation */}
+      <div className="h-20"></div>
     </div>
   )
 }
