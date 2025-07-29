@@ -10,7 +10,7 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import About from './pages/About'
 import Catalog from './pages/Catalog'
-import Stores from './pages/Stores'
+import Stores from './pages/StoresPage'
 import Category from './pages/Category'
 import Item from './pages/Item'
 import Profile from './pages/Profile'
@@ -38,7 +38,7 @@ function AppContent() {
       console.log('Магазин изменен, очищаем корзину')
       clearCart()
     }
-    
+
     console.log('Устанавливаем callback для очистки корзины')
     setOnBusinessChange(handleBusinessChange)
   }, [setOnBusinessChange, clearCart])

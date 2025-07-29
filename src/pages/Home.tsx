@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useAddress } from '../contexts/AddressContext'
 import { useBusiness } from '../contexts/BusinessContext'
 import { Link } from 'react-router-dom'
-import AddressSelectionModal from '../components/AddressSelectionModal'
+import SmartAddressSelectionModal from '../components/SmartAddressSelectionModal'
 import BusinessSelectionModal from '../components/BusinessSelectionModal'
 import ActiveOrderCard from '../components/ActiveOrderCard'
 import { createApiUrl, createApiUrlWithParams } from '../utils/api'
@@ -110,12 +110,12 @@ export default function Home() {
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
   const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false)
-  
+
   // Состояние для активных заказов
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([])
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [ordersError, setOrdersError] = useState<string | null>(null)
-  
+
   const { removeItem, getItemQuantity } = useCart()
   const { user } = useAuth()
   const { getSelectedAddress } = useAddress()
@@ -137,12 +137,12 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           address_id: selectedAddress.address_id,
-          business_id: selectedBusiness.id
-        })
+          business_id: selectedBusiness.id,
+        }),
       })
 
       if (response.ok) {
@@ -168,12 +168,12 @@ export default function Home() {
     try {
       setLoadingOrders(true)
       setOrdersError(null)
-      
+
       let url = createApiUrlWithParams('/api/orders/active', { limit: 5 })
       if (selectedBusiness) {
-        url = createApiUrlWithParams('/api/orders/active', { 
-          limit: 5, 
-          business_id: selectedBusiness.id 
+        url = createApiUrlWithParams('/api/orders/active', {
+          limit: 5,
+          business_id: selectedBusiness.id,
         })
       }
 
@@ -181,9 +181,9 @@ export default function Home() {
 
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
       })
 
       console.log('Orders response status:', response.status)
@@ -191,25 +191,25 @@ export default function Home() {
       if (response.ok) {
         const data: ActiveOrdersResponse = await response.json()
         console.log('Orders response data:', data)
-        
+
         if (data.success && data.data && Array.isArray(data.data.orders)) {
           // Проверяем каждый заказ на корректность данных и фильтруем только активные
           const validOrders = data.data.orders.filter(order => {
-            const isValid = order && 
-                           order.order_id && 
-                           order.current_status && 
-                           order.business
-            
+            const isValid =
+              order && order.order_id && order.current_status && order.business
+
             // Фильтруем только активные заказы (исключаем доставленные и отмененные)
-            const isActive = order.current_status?.status !== 5 && order.current_status?.status !== 99
-            
+            const isActive =
+              order.current_status?.status !== 5 &&
+              order.current_status?.status !== 99
+
             if (!isValid) {
               console.warn('Invalid order data:', order)
             }
-            
+
             return isValid && isActive
           })
-          
+
           setActiveOrders(validOrders)
           console.log('Valid active orders loaded:', validOrders.length)
         } else {
@@ -219,7 +219,9 @@ export default function Home() {
       } else {
         const errorText = await response.text()
         console.error('Orders API error:', response.status, errorText)
-        setOrdersError(`Ошибка ${response.status}: ${errorText || 'Не удалось загрузить заказы'}`)
+        setOrdersError(
+          `Ошибка ${response.status}: ${errorText || 'Не удалось загрузить заказы'}`
+        )
       }
     } catch (error) {
       console.error('Error fetching active orders:', error)
@@ -233,20 +235,21 @@ export default function Home() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        
+
         // Получаем товары с учетом выбранного магазина
         let itemsUrl = createApiUrl('/api/items')
         if (selectedBusiness) {
-          itemsUrl = createApiUrlWithParams('/api/items', { business_id: selectedBusiness.id })
+          itemsUrl = createApiUrlWithParams('/api/items', {
+            business_id: selectedBusiness.id,
+          })
         }
-        
+
         const itemsResponse = await fetch(itemsUrl)
         const itemsData: ItemsApiResponse = await itemsResponse.json()
-        
+
         if (itemsData.success) {
           setItems(itemsData.data.items.slice(0, 10))
         }
-        
       } catch (err) {
         setError('Не удалось подключиться к серверу')
         console.error('Error fetching data:', err)
@@ -294,7 +297,9 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             {/* Логотип */}
             <Link to="/" className="flex items-center">
-              <span className="text-lg font-bold text-black">Налив/Градусы</span>
+              <span className="text-lg font-bold text-black">
+                Налив/Градусы
+              </span>
             </Link>
 
             {/* Бонусы и аватар */}
@@ -305,13 +310,28 @@ export default function Home() {
                   <span className="text-sm font-semibold text-black">120</span>
                 </div>
               )}
-              
-              <Link to="/profile" className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+
+              <Link
+                to="/profile"
+                className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center"
+              >
                 {user ? (
-                  <span className="text-sm font-medium">{user.name.charAt(0).toUpperCase()}</span>
+                  <span className="text-sm font-medium">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
                 ) : (
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-4 h-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 )}
               </Link>
@@ -326,8 +346,18 @@ export default function Home() {
                 placeholder="Поиск товаров..."
                 className="w-full bg-gray-100 rounded-full px-4 py-3 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
           </div>
@@ -335,23 +365,42 @@ export default function Home() {
           {/* Адрес и магазин */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             {/* Адрес доставки */}
-            <button 
+            <button
               onClick={() => setIsAddressModalOpen(true)}
               className="flex items-start space-x-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <svg className="w-4 h-4 mt-0.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-4 h-4 mt-0.5 text-orange-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-black mb-0.5">Адрес доставки</p>
+                <p className="text-xs font-medium text-black mb-0.5">
+                  Адрес доставки
+                </p>
                 {selectedAddress ? (
                   <>
                     <p className="text-xs text-gray-600 leading-tight truncate">
                       {selectedAddress.address}
                     </p>
                     {selectedAddress.apartment && (
-                      <p className="text-xs text-gray-500">кв. {selectedAddress.apartment}</p>
+                      <p className="text-xs text-gray-500">
+                        кв. {selectedAddress.apartment}
+                      </p>
                     )}
                   </>
                 ) : (
@@ -361,12 +410,22 @@ export default function Home() {
             </button>
 
             {/* Магазин */}
-            <button 
+            <button
               onClick={() => setIsBusinessModalOpen(true)}
               className="flex items-start space-x-2 p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <svg className="w-4 h-4 mt-0.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <svg
+                className="w-4 h-4 mt-0.5 text-orange-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
               </svg>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-black mb-0.5">Магазин</p>
@@ -393,7 +452,9 @@ export default function Home() {
               {isCalculatingDelivery ? (
                 <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
               ) : deliveryCost !== null ? (
-                <span className="text-sm font-bold text-orange-600">{deliveryCost} ₸</span>
+                <span className="text-sm font-bold text-orange-600">
+                  {deliveryCost} ₸
+                </span>
               ) : (
                 <span className="text-sm text-gray-500">—</span>
               )}
@@ -419,13 +480,18 @@ export default function Home() {
                     className="p-1 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                     title="Обновить заказы"
                   >
-                    <svg 
-                      className={`w-4 h-4 ${loadingOrders ? 'animate-spin' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className={`w-4 h-4 ${loadingOrders ? 'animate-spin' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                   </button>
                   {activeOrders.length > 0 && (
@@ -442,7 +508,9 @@ export default function Home() {
               {loadingOrders ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-                  <span className="ml-2 text-sm text-gray-600">Загрузка заказов...</span>
+                  <span className="ml-2 text-sm text-gray-600">
+                    Загрузка заказов...
+                  </span>
                 </div>
               ) : ordersError ? (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -453,38 +521,61 @@ export default function Home() {
                   >
                     Повторить попытку
                   </button>
-                  
+
                   {/* Информация для отладки */}
                   <details className="mt-3">
-                    <summary className="text-xs text-red-500 cursor-pointer">Детали для разработчика</summary>
+                    <summary className="text-xs text-red-500 cursor-pointer">
+                      Детали для разработчика
+                    </summary>
                     <div className="mt-2 text-xs text-red-600 bg-red-100 p-2 rounded">
-                      <p>URL: {createApiUrlWithParams('/api/orders/active', { 
-                        limit: 5, 
-                        ...(selectedBusiness ? { business_id: selectedBusiness.id } : {})
-                      })}</p>
-                      <p>Пользователь: {user ? 'Авторизован' : 'Не авторизован'}</p>
-                      <p>Токен: {localStorage.getItem('token') ? 'Есть' : 'Отсутствует'}</p>
+                      <p>
+                        URL:{' '}
+                        {createApiUrlWithParams('/api/orders/active', {
+                          limit: 5,
+                          ...(selectedBusiness
+                            ? { business_id: selectedBusiness.id }
+                            : {}),
+                        })}
+                      </p>
+                      <p>
+                        Пользователь: {user ? 'Авторизован' : 'Не авторизован'}
+                      </p>
+                      <p>
+                        Токен:{' '}
+                        {localStorage.getItem('token') ? 'Есть' : 'Отсутствует'}
+                      </p>
                     </div>
                   </details>
                 </div>
               ) : activeOrders.length > 0 ? (
                 <div className="space-y-3">
-                  {activeOrders.map((order) => (
-                    <ActiveOrderCard 
-                      key={order.order_id} 
-                      order={order}
-                    />
+                  {activeOrders.map(order => (
+                    <ActiveOrderCard key={order.order_id} order={order} />
                   ))}
                 </div>
               ) : (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
                   <div className="text-gray-400 mb-2">
-                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <svg
+                      className="w-8 h-8 mx-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">Нет активных заказов</p>
-                  <p className="text-xs text-gray-500">Оформите первый заказ, чтобы увидеть его здесь</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Нет активных заказов
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Оформите первый заказ, чтобы увидеть его здесь
+                  </p>
                 </div>
               )}
             </div>
@@ -492,7 +583,7 @@ export default function Home() {
 
           {/* Фильтры */}
           <div className="flex items-center space-x-3 px-1">
-            {filters.map((filter) => (
+            {filters.map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -506,71 +597,99 @@ export default function Home() {
               </button>
             ))}
             <button className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                />
               </svg>
             </button>
           </div>
 
           {/* Товары */}
           <div className="grid grid-cols-2 gap-3">
-            {loading ? (
-              Array(6).fill(0).map((_, index) => (
-                <div key={index} className="bg-white rounded-lg p-4 animate-pulse">
-                  <div className="aspect-square bg-gray-200 rounded-lg mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-3"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
-                </div>
-              ))
-            ) : (
-              items.map((item) => {
-                const quantity = getItemQuantity(item.item_id)
-                return (
-                  <div key={item.item_id} className="bg-white rounded-lg p-4 relative">
-                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+            {loading
+              ? Array(6)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div
+                      key={index}
+                      className="bg-white rounded-lg p-4 animate-pulse"
+                    >
+                      <div className="aspect-square bg-gray-200 rounded-lg mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3 mb-3"></div>
+                      <div className="h-8 bg-gray-200 rounded"></div>
                     </div>
-                    
-                    <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm text-orange-600 font-bold mb-3">
-                      {item.price} ₸
-                    </p>
-                    
-                    <div className="absolute bottom-4 left-4 right-4">
-                      {quantity > 0 ? (
-                        <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                          <button
-                            onClick={() => handleRemoveFromCart(item.item_id)}
-                            className="w-6 h-6 flex items-center justify-center text-orange-600 hover:bg-orange-100 rounded"
-                          >
-                            <span className="text-lg leading-none">-</span>
-                          </button>
-                          <span className="font-medium text-orange-600">{quantity}</span>
+                  ))
+              : items.map(item => {
+                  const quantity = getItemQuantity(item.item_id)
+                  return (
+                    <div
+                      key={item.item_id}
+                      className="bg-white rounded-lg p-4 relative"
+                    >
+                      <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                        <svg
+                          className="w-8 h-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+
+                      <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+                        {item.name}
+                      </h3>
+                      <p className="text-sm text-orange-600 font-bold mb-3">
+                        {item.price} ₸
+                      </p>
+
+                      <div className="absolute bottom-4 left-4 right-4">
+                        {quantity > 0 ? (
+                          <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                            <button
+                              onClick={() => handleRemoveFromCart(item.item_id)}
+                              className="w-6 h-6 flex items-center justify-center text-orange-600 hover:bg-orange-100 rounded"
+                            >
+                              <span className="text-lg leading-none">-</span>
+                            </button>
+                            <span className="font-medium text-orange-600">
+                              {quantity}
+                            </span>
+                            <button
+                              disabled
+                              className="w-6 h-6 flex items-center justify-center text-orange-400 opacity-50"
+                            >
+                              <span className="text-lg leading-none">+</span>
+                            </button>
+                          </div>
+                        ) : (
                           <button
                             disabled
-                            className="w-6 h-6 flex items-center justify-center text-orange-400 opacity-50"
+                            className="w-full bg-gray-100 rounded-lg py-2 text-sm font-medium text-gray-500"
                           >
-                            <span className="text-lg leading-none">+</span>
+                            В корзину
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          disabled
-                          className="w-full bg-gray-100 rounded-lg py-2 text-sm font-medium text-gray-500"
-                        >
-                          В корзину
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )
-              })
-            )}
+                  )
+                })}
           </div>
 
           {error && (
@@ -581,15 +700,27 @@ export default function Home() {
 
           {/* Быстрые ссылки */}
           <div className="mt-8 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 px-2">Быстрые действия</h2>
+            <h2 className="text-lg font-bold text-gray-900 px-2">
+              Быстрые действия
+            </h2>
             <div className="grid grid-cols-2 gap-3">
               <Link
                 to="/catalog"
                 className="bg-white rounded-lg p-4 flex items-center space-x-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <svg
+                    className="w-5 h-5 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -597,14 +728,24 @@ export default function Home() {
                   <p className="text-sm text-gray-500">Все товары</p>
                 </div>
               </Link>
-              
+
               <Link
                 to="/stores"
                 className="bg-white rounded-lg p-4 flex items-center space-x-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <svg
+                    className="w-5 h-5 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -618,11 +759,11 @@ export default function Home() {
       </div>
 
       {/* Модальные окна */}
-      <AddressSelectionModal
+      <SmartAddressSelectionModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
       />
-      
+
       <BusinessSelectionModal
         isOpen={isBusinessModalOpen}
         onClose={() => setIsBusinessModalOpen(false)}
