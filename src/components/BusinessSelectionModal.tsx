@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useCart } from '../contexts/CartContext'
+import { createApiUrl } from '../utils/api'
 
 interface BusinessApiResponse {
   success: boolean
@@ -48,7 +49,7 @@ export default function BusinessSelectionModal({ isOpen, onClose }: BusinessSele
     try {
       setModalLoading(true)
       setLoading(true)
-      const response = await fetch('http://localhost:3000/api/businesses')
+      const response = await fetch(createApiUrl('/api/businesses'))
       const data: BusinessApiResponse = await response.json()
       
       if (data.success) {

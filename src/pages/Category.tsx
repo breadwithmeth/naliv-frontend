@@ -4,6 +4,7 @@ import { useBusiness } from '../contexts/BusinessContext'
 import { useCart } from '../contexts/CartContext'
 import ItemOptionsModal from '../components/ItemOptionsModal'
 import OptionsIndicator from '../components/OptionsIndicator'
+import { createApiUrl, createApiUrlWithParams } from '../utils/api'
 
 // Локальные placeholder изображения
 const DEFAULT_ITEM_IMAGE =
@@ -133,7 +134,11 @@ export default function Category() {
       try {
         setItemsLoading(true)
         const response = await fetch(
-          `http://localhost:3000/api/categories/${categoryId}/items?business_id=${selectedBusiness.id}&page=${page}&limit=${limit}`
+          createApiUrlWithParams(`/api/categories/${categoryId}/items`, {
+            business_id: selectedBusiness.id,
+            page,
+            limit
+          })
         )
 
         if (!response.ok) {
@@ -169,7 +174,7 @@ export default function Category() {
         setError(null)
 
         const response = await fetch(
-          `http://localhost:3000/api/categories/${categoryId}`
+          createApiUrl(`/api/categories/${categoryId}`)
         )
 
         if (!response.ok) {

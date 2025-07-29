@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createApiUrl } from '../utils/api'
 
 interface User {
   user_id: number
@@ -68,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const sendCode = async (phoneNumber: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/send-code', {
+      const response = await fetch(createApiUrl('/api/auth/send-code'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const verifyCode = async (phoneNumber: string, code: string): Promise<{ success: boolean; message: string; user?: User }> => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/verify-code', {
+      const response = await fetch(createApiUrl('/api/auth/verify-code'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

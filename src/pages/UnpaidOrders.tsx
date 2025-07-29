@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link } from 'react-router-dom'
 import PaymentModal from '../components/PaymentModal'
+import { createApiUrl } from '../utils/api'
 
 interface Order {
   order_id: number
@@ -50,7 +51,7 @@ export default function UnpaidOrders() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`http://localhost:3000/api/orders/user/${user.user_id}`, {
+      const response = await fetch(createApiUrl(`/api/orders/user/${user.user_id}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'

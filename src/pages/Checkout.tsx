@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext'
 import { useAddress } from '../contexts/AddressContext'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useAuth } from '../contexts/AuthContext'
+import { createApiUrl, createApiUrlWithParams } from '../utils/api'
 
 // Локальный placeholder для изображений
 const DEFAULT_SMALL_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMSAxOEgyN1YzMEgyMVYxOFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHR4dCB4PSIyNCIgeT0iMzYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2IiBmaWxsPSIjNkI3Mjg5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7QndC10YIg0YTQvtGC0L48L3R4dD4KPC9zdmc+'
@@ -78,8 +79,11 @@ export default function Checkout() {
       setIsCalculatingDelivery(true)
       setDeliveryError(null)
       const response = await fetch(
-        `http://localhost:3000/api/delivery/calculate-by-address?business_id=${selectedBusiness.id}&address_id=${selectedAddress.address_id}`
-      )
+          createApiUrlWithParams('/api/delivery/calculate-by-address', {
+            business_id: selectedBusiness.id,
+            address_id: selectedAddress.address_id
+          })
+        )
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -216,7 +220,7 @@ export default function Checkout() {
       console.log('Создание заказа:', orderData)
 
       // Отправляем запрос на создание заказа (без автоматической оплаты)
-      const response = await fetch('http://localhost:3000/api/orders/create-user-order', {
+      const response = await fetch(createApiUrl('/api/orders/create-user-order'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

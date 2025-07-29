@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { createApiUrl } from '../utils/api'
 
 interface Category {
   category_id: number
@@ -28,7 +29,7 @@ export default function Catalog() {
     const fetchCategories = async () => {
       try {
         setLoading(true)
-        const response = await fetch('http://localhost:3000/api/categories')
+        const response = await fetch(createApiUrl('/api/categories'))
         const data: CategoriesApiResponse = await response.json()
         
         if (data.success) {

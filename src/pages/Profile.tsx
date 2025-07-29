@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useAddress } from '../contexts/AddressContext'
 import { useBusiness } from '../contexts/BusinessContext'
+import { Link } from 'react-router-dom'
 import AddAddressModal from '../components/AddAddressModal'
 import AddCardModal from '../components/AddCardModal'
+import { createApiUrl } from '../utils/api'
 
 interface Card {
   card_id: number
@@ -41,7 +43,7 @@ export default function Profile() {
 
     try {
       setIsLoadingCards(true)
-      const response = await fetch('http://localhost:3000/api/user/cards', {
+      const response = await fetch(createApiUrl('/api/user/cards'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -68,7 +70,7 @@ export default function Profile() {
   const deleteCard = async (cardId: number) => {
     try {
       setCardActionLoading(cardId)
-      const response = await fetch(`http://localhost:3000/api/user/cards/${cardId}`, {
+      const response = await fetch(createApiUrl(`/api/user/cards/${cardId}`), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -92,8 +94,35 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Войдите в аккаунт для просмотра профиля</p>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <h1 className="text-lg font-medium">Профиль</h1>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-medium text-gray-900 mb-2">
+            Войдите в аккаунт
+          </h2>
+          <p className="text-gray-600 text-center mb-6">
+            Для просмотра профиля, сохранения адресов и отслеживания заказов
+          </p>
+          <Link 
+            to="/auth"
+            className="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors"
+          >
+            Войти в аккаунт
+          </Link>
+        </div>
+
+        {/* Bottom padding for navigation */}
+        <div className="h-20"></div>
       </div>
     )
   }

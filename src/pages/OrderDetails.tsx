@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { createApiUrl } from '../utils/api'
 
 interface OrderDetails {
   order_id: number
@@ -68,7 +69,7 @@ export default function OrderDetails() {
         setLoading(true)
         setError(null)
         
-        const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+        const response = await fetch(createApiUrl(`/api/orders/${orderId}`), {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'

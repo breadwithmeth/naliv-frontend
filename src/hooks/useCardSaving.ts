@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { createApiUrl, getApiUrl } from '../utils/api'
 
 interface CardSavingState {
   isLoading: boolean
@@ -49,7 +50,7 @@ export const useCardSaving = (): UseCardSavingReturn => {
         return
       }
 
-      const response = await fetch('http://localhost:3000/api/payments/status', {
+      const response = await fetch(createApiUrl('/api/payments/status'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -124,8 +125,8 @@ export const useCardSaving = (): UseCardSavingReturn => {
       }
 
       const endpoint = isRefresh 
-        ? 'http://localhost:3000/api/payments/save-card/refresh-init' 
-        : 'http://localhost:3000/api/payments/save-card/init'
+        ? createApiUrl('/api/payments/save-card/refresh-init')
+        : createApiUrl('/api/payments/save-card/init')
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -136,7 +137,7 @@ export const useCardSaving = (): UseCardSavingReturn => {
         body: JSON.stringify({
           backLink: `${window.location.origin}/cards/success`,
           failureBackLink: `${window.location.origin}/cards/failure`,
-          postLink: `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/payments/save-card/postlink`,
+          postLink: `${getApiUrl()}/api/payments/save-card/postlink`,
           userId: user.user_id
         })
       })

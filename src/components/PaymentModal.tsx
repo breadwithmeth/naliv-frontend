@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { createApiUrl } from '../utils/api'
 
 interface SavedCard {
   card_id: number
@@ -62,7 +63,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       setLoading(true)
       setError(null)
 
-      const response = await fetch('http://localhost:3000/api/user/cards', {
+      const response = await fetch(createApiUrl('/api/user/cards'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -105,7 +106,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       setError(null)
 
       // Отправляем запрос на создание платежа
-      const response = await fetch('http://localhost:3000/api/payments/pay-with-saved-card', {
+      const response = await fetch(createApiUrl('/api/payments/pay-with-saved-card'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -184,7 +185,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
     if (!order) return
 
     try {
-      const response = await fetch(`http://localhost:3000/api/payments/order-payment-status/${order.order_id}`, {
+      const response = await fetch(createApiUrl(`/api/payments/order-payment-status/${order.order_id}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import AddressSelectionModal from '../components/AddressSelectionModal'
 import BusinessSelectionModal from '../components/BusinessSelectionModal'
 import ActiveOrderCard from '../components/ActiveOrderCard'
+import { createApiUrl, createApiUrlWithParams } from '../utils/api'
 
 interface Item {
   item_id: number
@@ -132,7 +133,7 @@ export default function Home() {
 
     try {
       setIsCalculatingDelivery(true)
-      const response = await fetch('http://localhost:3000/api/delivery/calculate', {
+      const response = await fetch(createApiUrl('/api/delivery/calculate'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,9 +169,12 @@ export default function Home() {
       setLoadingOrders(true)
       setOrdersError(null)
       
-      let url = 'http://localhost:3000/api/orders/active?limit=5'
+      let url = createApiUrlWithParams('/api/orders/active', { limit: 5 })
       if (selectedBusiness) {
-        url += `&business_id=${selectedBusiness.id}`
+        url = createApiUrlWithParams('/api/orders/active', { 
+          limit: 5, 
+          business_id: selectedBusiness.id 
+        })
       }
 
       console.log('Fetching active orders from:', url)
@@ -231,9 +235,9 @@ export default function Home() {
         setLoading(true)
         
         // Получаем товары с учетом выбранного магазина
-        let itemsUrl = 'http://localhost:3000/api/items'
+        let itemsUrl = createApiUrl('/api/items')
         if (selectedBusiness) {
-          itemsUrl += `?business_id=${selectedBusiness.id}`
+          itemsUrl = createApiUrlWithParams('/api/items', { business_id: selectedBusiness.id })
         }
         
         const itemsResponse = await fetch(itemsUrl)
@@ -454,7 +458,10 @@ export default function Home() {
                   <details className="mt-3">
                     <summary className="text-xs text-red-500 cursor-pointer">Детали для разработчика</summary>
                     <div className="mt-2 text-xs text-red-600 bg-red-100 p-2 rounded">
-                      <p>URL: {`http://localhost:3000/api/orders/active?limit=5${selectedBusiness ? `&business_id=${selectedBusiness.id}` : ''}`}</p>
+                      <p>URL: {createApiUrlWithParams('/api/orders/active', { 
+                        limit: 5, 
+                        ...(selectedBusiness ? { business_id: selectedBusiness.id } : {})
+                      })}</p>
                       <p>Пользователь: {user ? 'Авторизован' : 'Не авторизован'}</p>
                       <p>Токен: {localStorage.getItem('token') ? 'Есть' : 'Отсутствует'}</p>
                     </div>

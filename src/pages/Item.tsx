@@ -4,6 +4,7 @@ import { useBusiness } from '../contexts/BusinessContext'
 import { useCart } from '../contexts/CartContext'
 import ItemOptionsModal from '../components/ItemOptionsModal'
 import OptionsIndicator from '../components/OptionsIndicator'
+import { createApiUrlWithParams } from '../utils/api'
 
 interface Category {
   category_id: number
@@ -94,7 +95,9 @@ export default function Item() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`http://localhost:3000/api/categories/items/${itemId}?business_id=${selectedBusiness.id}`)
+        const response = await fetch(createApiUrlWithParams(`/api/categories/items/${itemId}`, {
+          business_id: selectedBusiness.id
+        }))
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { createApiUrl } from '../utils/api'
 
 interface Card {
   card_id: number
@@ -68,7 +69,7 @@ export default function OrderPayment() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}`, {
+      const response = await fetch(createApiUrl(`/api/orders/${orderId}`), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -102,7 +103,7 @@ export default function OrderPayment() {
 
     try {
       setIsLoadingCards(true)
-      const response = await fetch('http://localhost:3000/api/user/cards', {
+      const response = await fetch(createApiUrl('/api/user/cards'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -162,7 +163,7 @@ export default function OrderPayment() {
 
       console.log('Инициируем оплату:', paymentData)
 
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}/pay`, {
+      const response = await fetch(createApiUrl(`/api/orders/${orderId}/pay`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
