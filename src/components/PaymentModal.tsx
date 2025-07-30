@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { createApiUrl } from '../utils/api'
 
@@ -43,7 +43,12 @@ interface PaymentModalProps {
   onPaymentSuccess: () => void
 }
 
-export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess }: PaymentModalProps) {
+export default function PaymentModal({
+  isOpen,
+  onClose,
+  order,
+  onPaymentSuccess,
+}: PaymentModalProps) {
   const { user } = useAuth()
   const [savedCards, setSavedCards] = useState<SavedCard[]>([])
   const [selectedCard, setSelectedCard] = useState<SavedCard | null>(null)
@@ -53,7 +58,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
   const [paymentWindow, setPaymentWindow] = useState<Window | null>(null)
 
   // Загрузка сохраненных карт
-  const loadSavedCards = async () => {
+  const loadSavedCards = useCallback(async () => {
     if (!user) {
       setSavedCards([])
       return
@@ -65,9 +70,9 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
 
       const response = await fetch(createApiUrl('/api/user/cards'), {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
       })
 
       if (!response.ok) {
@@ -87,12 +92,16 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       }
     } catch (error) {
       console.error('Error loading saved cards:', error)
-      setError(error instanceof Error ? error.message : 'Произошла ошибка при загрузке карт')
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Произошла ошибка при загрузке карт'
+      )
       setSavedCards([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   // Процесс оплаты
   const processPayment = async () => {
@@ -106,17 +115,20 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       setError(null)
 
       // Отправляем запрос на создание платежа
-      const response = await fetch(createApiUrl('/api/payments/pay-with-saved-card'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          order_id: order.order_id,
-          saved_card_id: selectedCard.card_id
-        })
-      })
+      const response = await fetch(
+        createApiUrl('/api/payments/pay-with-saved-card'),
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order_id: order.order_id,
+            saved_card_id: selectedCard.card_id,
+          }),
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -127,19 +139,21 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
 
       // Открываем форму Halyk Bank в новом окне
       const newPaymentWindow = window.open(
-        '', 
-        'halyk_payment', 
+        '',
+        'halyk_payment',
         'width=600,height=700,scrollbars=yes,resizable=yes,menubar=no,toolbar=no'
       )
 
       if (!newPaymentWindow) {
-        throw new Error('Не удалось открыть окно оплаты. Проверьте настройки блокировщика всплывающих окон.')
+        throw new Error(
+          'Не удалось открыть окно оплаты. Проверьте настройки блокировщика всплывающих окон.'
+        )
       }
 
       // Записываем HTML в окно
       newPaymentWindow.document.write(htmlForm)
       newPaymentWindow.document.close()
-      
+
       setPaymentWindow(newPaymentWindow)
 
       // Слушаем закрытие окна
@@ -147,7 +161,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
         if (newPaymentWindow.closed) {
           clearInterval(checkClosed)
           setPaymentWindow(null)
-          
+
           // Проверяем результат оплаты
           checkPaymentStatus()
         }
@@ -157,13 +171,15 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       const handleMessage = (event: MessageEvent) => {
         if (event.source === newPaymentWindow) {
           clearInterval(checkClosed)
-          
+
           if (event.data.type === 'payment_success') {
             handlePaymentSuccess()
           } else if (event.data.type === 'payment_failure') {
-            setError(`Ошибка оплаты: ${event.data.error || 'Неизвестная ошибка'}`)
+            setError(
+              `Ошибка оплаты: ${event.data.error || 'Неизвестная ошибка'}`
+            )
           }
-          
+
           newPaymentWindow.close()
           setPaymentWindow(null)
           window.removeEventListener('message', handleMessage)
@@ -171,10 +187,11 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       }
 
       window.addEventListener('message', handleMessage)
-
     } catch (error) {
       console.error('Payment error:', error)
-      setError(error instanceof Error ? error.message : 'Произошла ошибка при оплате')
+      setError(
+        error instanceof Error ? error.message : 'Произошла ошибка при оплате'
+      )
     } finally {
       setPaymentLoading(false)
     }
@@ -185,12 +202,15 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
     if (!order) return
 
     try {
-      const response = await fetch(createApiUrl(`/api/payments/order-payment-status/${order.order_id}`), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        createApiUrl(`/api/payments/order-payment-status/${order.order_id}`),
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
         }
-      })
+      )
 
       if (response.ok) {
         const data = await response.json()
@@ -210,10 +230,10 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
   const handlePaymentSuccess = () => {
     setPaymentLoading(false)
     setError(null)
-    
+
     // Показываем уведомление об успехе
     alert('Заказ успешно оплачен!')
-    
+
     // Закрываем модалку и обновляем список
     onPaymentSuccess()
   }
@@ -226,7 +246,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
       setPaymentLoading(false)
       loadSavedCards()
     }
-  }, [isOpen, order])
+  }, [isOpen, order, loadSavedCards])
 
   // Закрытие окна оплаты при закрытии модалки
   useEffect(() => {
@@ -254,8 +274,18 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
             disabled={paymentLoading}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -271,7 +301,11 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
               </div>
               <div className="flex justify-between">
                 <span>Доставка:</span>
-                <span>{order.delivery_price === 0 ? 'Бесплатно' : `${order.delivery_price} ₸`}</span>
+                <span>
+                  {order.delivery_price === 0
+                    ? 'Бесплатно'
+                    : `${order.delivery_price} ₸`}
+                </span>
               </div>
               <div className="border-t border-gray-200 pt-1 mt-2">
                 <div className="flex justify-between font-semibold text-gray-900">
@@ -284,8 +318,10 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
 
           {/* Выбор карты */}
           <div className="mb-6">
-            <h3 className="font-medium text-gray-900 mb-4">Выберите карту для оплаты</h3>
-            
+            <h3 className="font-medium text-gray-900 mb-4">
+              Выберите карту для оплаты
+            </h3>
+
             {loading ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
@@ -293,7 +329,7 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
               </div>
             ) : savedCards.length > 0 ? (
               <div className="space-y-3">
-                {savedCards.map((card) => (
+                {savedCards.map(card => (
                   <label
                     key={card.card_id}
                     className={`flex items-center p-4 rounded-lg border cursor-pointer transition-all ${
@@ -313,15 +349,27 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">💳</span>
                       <div>
-                        <h4 className="font-medium text-gray-900">Карта {card.mask}</h4>
-                        <p className="text-sm text-gray-600">Сохраненная банковская карта</p>
+                        <h4 className="font-medium text-gray-900">
+                          Карта {card.mask}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Сохраненная банковская карта
+                        </p>
                       </div>
                     </div>
                     {selectedCard?.card_id === card.card_id && (
                       <div className="ml-auto">
                         <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </div>
                       </div>
@@ -334,8 +382,12 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">💳</span>
                 </div>
-                <h4 className="font-medium text-gray-900 mb-2">Нет сохраненных карт</h4>
-                <p className="text-gray-600 mb-4">Добавьте банковскую карту в профиле</p>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Нет сохраненных карт
+                </h4>
+                <p className="text-gray-600 mb-4">
+                  Добавьте банковскую карту в профиле
+                </p>
                 <button
                   onClick={onClose}
                   className="text-blue-600 underline hover:text-blue-700 transition-colors"
@@ -352,7 +404,9 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
               <div className="flex items-start space-x-3">
                 <span className="text-red-500 text-lg">⚠️</span>
                 <div>
-                  <h4 className="font-medium text-red-800 mb-1">Ошибка оплаты</h4>
+                  <h4 className="font-medium text-red-800 mb-1">
+                    Ошибка оплаты
+                  </h4>
                   <p className="text-red-700 text-sm">{error}</p>
                 </div>
               </div>
@@ -370,7 +424,9 @@ export default function PaymentModal({ isOpen, onClose, order, onPaymentSuccess 
             </button>
             <button
               onClick={processPayment}
-              disabled={paymentLoading || !selectedCard || savedCards.length === 0}
+              disabled={
+                paymentLoading || !selectedCard || savedCards.length === 0
+              }
               className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {paymentLoading ? (

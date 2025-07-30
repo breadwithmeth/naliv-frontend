@@ -25,6 +25,8 @@ import CardFailure from './pages/CardFailure'
 import UnpaidOrders from './pages/UnpaidOrders'
 import OrderDetails from './pages/OrderDetails'
 import Auth from './pages/Auth'
+import AddressTest from './pages/AddressTest'
+import TokenInfo from './pages/TokenInfo'
 
 // Компонент для подключения очистки корзины при смене магазина
 function AppContent() {
@@ -65,6 +67,8 @@ function AppContent() {
         <Route path="cards/success" element={<CardSuccess />} />
         <Route path="cards/failure" element={<CardFailure />} />
         <Route path="auth" element={<Auth />} />
+        <Route path="address-test" element={<AddressTest />} />
+        <Route path="token-info" element={<TokenInfo />} />
       </Route>
     </Routes>
   )

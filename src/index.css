@@ -6,7 +6,9 @@
 
 @layer base {
   html {
-    font-family: -apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Inter', sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', 'Roboto',
+      'Helvetica Neue', 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -20,7 +22,12 @@
     box-sizing: border-box;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
     font-weight: 600;
   }
@@ -68,6 +75,20 @@
 
   .floating-action-button {
     @apply fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300 flex items-center justify-center font-medium shadow-2xl hover:shadow-3xl;
+  }
+
+  .floating-nav {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-item-active {
+    @apply bg-primary-50 text-primary-600;
+  }
+
+  .nav-item-hover {
+    @apply hover:bg-gray-100/60 transition-all duration-200;
   }
 
   .writing-mode-vertical {
@@ -145,15 +166,24 @@
   }
 
   .material-elevation-1 {
-    box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+    box-shadow:
+      0 2px 1px -1px rgba(0, 0, 0, 0.2),
+      0 1px 1px 0 rgba(0, 0, 0, 0.14),
+      0 1px 3px 0 rgba(0, 0, 0, 0.12);
   }
 
   .material-elevation-2 {
-    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+    box-shadow:
+      0 3px 1px -2px rgba(0, 0, 0, 0.2),
+      0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12);
   }
 
   .material-elevation-4 {
-    box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+    box-shadow:
+      0 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0 4px 5px 0 rgba(0, 0, 0, 0.14),
+      0 1px 10px 0 rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -162,16 +192,31 @@
   .safe-area-inset-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .safe-area-inset-left {
     padding-left: env(safe-area-inset-left);
   }
-  
+
   .safe-area-inset-right {
     padding-right: env(safe-area-inset-right);
+  }
+
+  /* Отступ для контента с учетом плавающей навигации */
+  .pb-bottom-nav {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Отступ для контента с учетом фиксированного header'а */
+  .pt-header {
+    padding-top: calc(16rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* Минимальная высота для предотвращения перекрытия навигации */
+  .min-h-screen-with-nav {
+    min-height: calc(100vh + 5rem + env(safe-area-inset-bottom, 0px));
   }
 }

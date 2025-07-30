@@ -32,14 +32,40 @@ export default function SmartAddressSelectionModal({
   onClose,
   onAddressSelect,
 }: SmartAddressSelectionModalProps) {
-  const { setSelectedAddressId, selectedAddressId } = useAddress()
+  const {
+    setSelectedAddressId,
+    selectedAddressId,
+    addresses: contextAddresses,
+  } = useAddress()
   const { user } = useAuth()
   const { selectedBusiness } = useBusiness()
 
-  const handleAddressSelect = (address: Address) => {
+  const handleAddressSelect = async (address: Address) => {
+    console.log(
+      'SmartAddressSelectionModal: Selecting address:',
+      address.address_id,
+      address.name
+    )
+
+    // Устанавливаем выбранный адрес
     setSelectedAddressId(address.address_id)
 
+    // Проверяем, есть ли этот адрес в основном списке контекста
+    const addressExistsInContext = contextAddresses.some(
+      addr => addr.address_id === address.address_id
+    )
+
+    if (!addressExistsInContext) {
+      console.log(
+        'SmartAddressSelectionModal: Address not in context, but fetchAddresses is disabled'
+      )
+      // fetchAddresses удален - адреса загружаются автоматически через fetchAddressesWithDelivery
+    }
+
     if (onAddressSelect) {
+      console.log(
+        'SmartAddressSelectionModal: Calling onAddressSelect callback'
+      )
       onAddressSelect(address)
     }
 

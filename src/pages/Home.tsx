@@ -7,6 +7,9 @@ import { Link } from 'react-router-dom'
 import SmartAddressSelectionModal from '../components/SmartAddressSelectionModal'
 import BusinessSelectionModal from '../components/BusinessSelectionModal'
 import ActiveOrderCard from '../components/ActiveOrderCard'
+import OrderDetailsModal from '../components/OrderDetailsModal'
+import AddressDebugSimple from '../components/AddressDebugSimple'
+
 import { createApiUrl, createApiUrlWithParams } from '../utils/api'
 
 interface Item {
@@ -110,6 +113,8 @@ export default function Home() {
   const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
   const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false)
+  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false)
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
 
   // Состояние для активных заказов
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([])
@@ -118,11 +123,10 @@ export default function Home() {
 
   const { removeItem, getItemQuantity } = useCart()
   const { user } = useAuth()
-  const { getSelectedAddress } = useAddress()
+  const { selectedAddress } = useAddress()
   const { selectedBusiness } = useBusiness()
 
   const filters = ['Популярные', 'Новинки', 'Акции']
-  const selectedAddress = getSelectedAddress()
 
   // Функция для расчета стоимости доставки
   const calculateDelivery = useCallback(async () => {
@@ -288,6 +292,16 @@ export default function Home() {
     removeItem(itemId)
   }
 
+  const handleOrderClick = (orderId: number) => {
+    setSelectedOrderId(orderId)
+    setIsOrderDetailsModalOpen(true)
+  }
+
+  const handleCloseOrderDetails = () => {
+    setIsOrderDetailsModalOpen(false)
+    setSelectedOrderId(null)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
@@ -298,7 +312,7 @@ export default function Home() {
             {/* Логотип */}
             <Link to="/" className="flex items-center">
               <span className="text-lg font-bold text-black">
-                Налив/Градусы
+                Налив/Градусы24
               </span>
             </Link>
 
@@ -394,6 +408,12 @@ export default function Home() {
                 </p>
                 {selectedAddress ? (
                   <>
+                    {selectedAddress.name &&
+                      selectedAddress.name !== 'Новый адрес' && (
+                        <p className="text-xs font-medium text-gray-800 leading-tight">
+                          {selectedAddress.name}
+                        </p>
+                      )}
                     <p className="text-xs text-gray-600 leading-tight truncate">
                       {selectedAddress.address}
                     </p>
@@ -401,6 +421,20 @@ export default function Home() {
                       <p className="text-xs text-gray-500">
                         кв. {selectedAddress.apartment}
                       </p>
+                    )}
+                    {/* Показываем информацию о доставке если доступна */}
+                    {selectedAddress.delivery && (
+                      <div className="mt-1">
+                        {selectedAddress.delivery.available ? (
+                          <p className="text-xs text-green-600">
+                            ✓ Доставка: {selectedAddress.delivery.price} ₸
+                          </p>
+                        ) : (
+                          <p className="text-xs text-red-500">
+                            ✗ Доставка недоступна
+                          </p>
+                        )}
+                      </div>
                     )}
                   </>
                 ) : (
@@ -464,7 +498,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="pt-52 pb-20 px-4">
+      <div className="pt-header pb-bottom-nav px-4">
         <div className="space-y-4">
           {/* Активные заказы */}
           {user && (
@@ -550,7 +584,11 @@ export default function Home() {
               ) : activeOrders.length > 0 ? (
                 <div className="space-y-3">
                   {activeOrders.map(order => (
-                    <ActiveOrderCard key={order.order_id} order={order} />
+                    <ActiveOrderCard
+                      key={order.order_id}
+                      order={order}
+                      onClick={handleOrderClick}
+                    />
                   ))}
                 </div>
               ) : (
@@ -768,6 +806,15 @@ export default function Home() {
         isOpen={isBusinessModalOpen}
         onClose={() => setIsBusinessModalOpen(false)}
       />
+
+      <OrderDetailsModal
+        isOpen={isOrderDetailsModalOpen}
+        onClose={handleCloseOrderDetails}
+        orderId={selectedOrderId}
+      />
+
+      {/* Debug component */}
+      <AddressDebugSimple />
     </div>
   )
 }

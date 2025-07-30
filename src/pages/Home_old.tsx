@@ -26,14 +26,16 @@ interface ApiResponse {
       total: number
       total_pages: number
     }
-    filters: Record<string, any>
+    filters: Record<string, unknown>
   }
   message: string
 }
 
 export default function Home() {
   const [businesses, setBusinesses] = useState<Business[]>([])
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+    null
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,7 +45,7 @@ export default function Home() {
         setLoading(true)
         const response = await fetch('http://localhost:3000/api/businesses')
         const data: ApiResponse = await response.json()
-        
+
         if (data.success) {
           setBusinesses(data.data.businesses)
           // Автоматически выбираем первый магазин
@@ -79,7 +81,7 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Выберите ближайший магазин
         </h2>
-        
+
         {loading && (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -95,7 +97,7 @@ export default function Home() {
 
         {!loading && !error && businesses.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {businesses.map((business) => (
+            {businesses.map(business => (
               <div
                 key={business.id}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -111,7 +113,7 @@ export default function Home() {
                       src={business.logo}
                       alt={business.name}
                       className="w-10 h-10 rounded-full object-cover"
-                      onError={(e) => {
+                      onError={e => {
                         e.currentTarget.style.display = 'none'
                       }}
                     />
@@ -123,9 +125,7 @@ export default function Home() {
                     <p className="text-sm text-gray-600">{business.address}</p>
                   </div>
                   {selectedBusiness?.id === business.id && (
-                    <div className="text-primary-600">
-                      ✓
-                    </div>
+                    <div className="text-primary-600">✓</div>
                   )}
                 </div>
               </div>
@@ -140,9 +140,7 @@ export default function Home() {
             </h3>
             <p className="text-gray-600 mb-4">{selectedBusiness.address}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button className="btn btn-primary">
-                🚚 Заказать доставку
-              </button>
+              <button className="btn btn-primary">🚚 Заказать доставку</button>
               <button className="btn btn-secondary">
                 📱 Связаться с магазином
               </button>

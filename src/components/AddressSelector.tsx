@@ -32,6 +32,8 @@ interface AddressSelectorProps {
   onAddressSelect: (address: Address) => void
   selectedAddressId?: number | null
   className?: string
+  showDeliveryInfo?: boolean
+  compact?: boolean
 }
 
 export default function AddressSelector({
@@ -39,6 +41,8 @@ export default function AddressSelector({
   onAddressSelect,
   selectedAddressId,
   className = '',
+  showDeliveryInfo = true,
+  compact = false,
 }: AddressSelectorProps) {
   const { user } = useAuth()
   const [addresses, setAddresses] = useState<Address[]>([])
@@ -46,7 +50,7 @@ export default function AddressSelector({
   const [error, setError] = useState<string | null>(null)
 
   // Функция для получения адресов с проверкой доставки
-  const getAddressesForOrder = async (
+  const fetchAddressesForOrder = async (
     businessId: number,
     userToken: string
   ) => {
@@ -99,7 +103,7 @@ export default function AddressSelector({
     if (businessId && user) {
       const token = localStorage.getItem('token')
       if (token) {
-        getAddressesForOrder(businessId, token)
+        fetchAddressesForOrder(businessId, token)
       }
     }
   }, [businessId, user])
@@ -135,7 +139,7 @@ export default function AddressSelector({
           onClick={() => {
             const token = localStorage.getItem('token')
             if (token) {
-              getAddressesForOrder(businessId, token)
+              fetchAddressesForOrder(businessId, token)
             }
           }}
           className="text-sm text-red-700 hover:text-red-800 font-medium bg-red-100 px-3 py-1 rounded"
@@ -185,7 +189,7 @@ export default function AddressSelector({
       {addresses.map(address => (
         <div
           key={address.address_id}
-          className={`border rounded-lg p-4 cursor-pointer transition-all ${
+          className={`border rounded-lg ${compact ? 'p-3' : 'p-4'} cursor-pointer transition-all ${
             selectedAddressId === address.address_id
               ? 'border-orange-500 bg-orange-50'
               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -194,19 +198,31 @@ export default function AddressSelector({
         >
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 mb-1">{address.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{address.address}</p>
+              <h3
+                className={`font-medium text-gray-900 mb-1 ${compact ? 'text-sm' : ''}`}
+              >
+                {address.name}
+              </h3>
+              <p
+                className={`text-gray-600 mb-2 ${compact ? 'text-xs' : 'text-sm'}`}
+              >
+                {address.address}
+              </p>
 
               {address.apartment && (
-                <p className="text-xs text-gray-500 mb-2">
+                <p
+                  className={`text-gray-500 mb-2 ${compact ? 'text-xs' : 'text-xs'}`}
+                >
                   Кв. {address.apartment}
                   {address.entrance && `, подъезд ${address.entrance}`}
                   {address.floor && `, этаж ${address.floor}`}
                 </p>
               )}
 
-              {address.delivery && (
-                <div className="flex items-center space-x-4 text-xs">
+              {showDeliveryInfo && address.delivery && (
+                <div
+                  className={`flex items-center space-x-4 ${compact ? 'text-xs' : 'text-xs'}`}
+                >
                   <div className="flex items-center space-x-1">
                     <span className="text-green-600">✓</span>
                     <span className="text-green-600 font-medium">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useAddress } from '../contexts/AddressContext'
 import { useBusiness } from '../contexts/BusinessContext'
@@ -23,19 +23,21 @@ interface CardsResponse {
 
 export default function Profile() {
   const { user, logout } = useAuth()
-  const { addresses } = useAddress()
+  const { addresses, selectedAddress } = useAddress()
   const { businesses } = useBusiness()
   const [activeTab, setActiveTab] = useState('Данные')
   const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false)
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false)
   const [cards, setCards] = useState<Card[]>([])
   const [isLoadingCards, setIsLoadingCards] = useState(false)
-  const [cardActionLoading, setCardActionLoading] = useState<number | null>(null)
+  const [cardActionLoading, setCardActionLoading] = useState<number | null>(
+    null
+  )
 
   const tabs = ['Данные', 'Заказы', 'Избранное']
 
   // Функция для загрузки сохраненных карт
-  const loadCards = async () => {
+  const loadCards = useCallback(async () => {
     if (!user) {
       setCards([])
       return
@@ -45,17 +47,17 @@ export default function Profile() {
       setIsLoadingCards(true)
       const response = await fetch(createApiUrl('/api/user/cards'), {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
       })
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data: CardsResponse = await response.json()
-      
+
       if (data.success) {
         setCards(data.data.cards)
       }
@@ -64,7 +66,7 @@ export default function Profile() {
     } finally {
       setIsLoadingCards(false)
     }
-  }
+  }, [user])
 
   // Функция для удаления карты
   const deleteCard = async (cardId: number) => {
@@ -73,11 +75,11 @@ export default function Profile() {
       const response = await fetch(createApiUrl(`/api/user/cards/${cardId}`), {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
       })
-      
+
       if (response.ok) {
         setCards(cards.filter(card => card.card_id !== cardId))
       }
@@ -90,7 +92,7 @@ export default function Profile() {
 
   useEffect(() => {
     loadCards()
-  }, [user])
+  }, [user, loadCards])
 
   if (!user) {
     return (
@@ -103,8 +105,18 @@ export default function Profile() {
         {/* Content */}
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
             </svg>
           </div>
           <h2 className="text-lg font-medium text-gray-900 mb-2">
@@ -113,7 +125,7 @@ export default function Profile() {
           <p className="text-gray-600 text-center mb-6">
             Для просмотра профиля, сохранения адресов и отслеживания заказов
           </p>
-          <Link 
+          <Link
             to="/auth"
             className="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors"
           >
@@ -136,18 +148,35 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
-        <button 
-          onClick={() => window.history.back()}
-          className="mr-3"
-        >
-          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <button onClick={() => window.history.back()} className="mr-3">
+          <svg
+            className="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <h1 className="text-lg font-medium flex-1">Профиль</h1>
         <button className="p-1">
-          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          <svg
+            className="w-6 h-6 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+            />
           </svg>
         </button>
       </div>
@@ -155,7 +184,7 @@ export default function Profile() {
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
-          {tabs.map((tab) => (
+          {tabs.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -182,8 +211,18 @@ export default function Profile() {
                 <p className="text-2xl font-bold">120 бонусов</p>
               </div>
               <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4m-4-4h4" />
+                <svg
+                  className="w-6 h-6 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4m-4-4h4"
+                  />
                 </svg>
               </div>
             </div>
@@ -192,33 +231,123 @@ export default function Profile() {
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium">Адреса доставки</h3>
-                <button 
+                <button
                   onClick={() => setIsAddAddressModalOpen(true)}
                   className="text-orange-500 text-sm"
                 >
                   Добавить
                 </button>
               </div>
+
+              {/* Выбранный адрес */}
+              {selectedAddress && (
+                <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-orange-800">
+                        Выбранный адрес
+                      </p>
+                      <p className="text-sm text-orange-700">
+                        {selectedAddress.name}
+                      </p>
+                      <p className="text-xs text-orange-600">
+                        {selectedAddress.address}
+                      </p>
+                      {selectedAddress.apartment && (
+                        <p className="text-xs text-orange-600">
+                          кв. {selectedAddress.apartment}
+                        </p>
+                      )}
+                      {selectedAddress.delivery && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          {selectedAddress.delivery.available
+                            ? `✓ Доставка: ${selectedAddress.delivery.price} ₸`
+                            : '✗ Доставка недоступна'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {addresses.length > 0 ? (
                 <div className="space-y-2">
-                  {addresses.map((address) => (
-                    <div key={address.address_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {addresses.map(address => (
+                    <div
+                      key={address.address_id}
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        selectedAddress?.address_id === address.address_id
+                          ? 'bg-orange-50 border border-orange-200'
+                          : 'bg-gray-50'
+                      }`}
+                    >
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
-                          <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                            selectedAddress?.address_id === address.address_id
+                              ? 'bg-orange-500'
+                              : 'bg-orange-100'
+                          }`}
+                        >
+                          <svg
+                            className={`w-4 h-4 ${
+                              selectedAddress?.address_id === address.address_id
+                                ? 'text-white'
+                                : 'text-orange-500'
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
                           </svg>
                         </div>
                         <div>
                           <p className="text-sm font-medium">{address.name}</p>
-                          <p className="text-xs text-gray-500">{address.address}</p>
-                          {address.apartment && <p className="text-xs text-gray-500">кв. {address.apartment}</p>}
+                          <p className="text-xs text-gray-500">
+                            {address.address}
+                          </p>
+                          {address.apartment && (
+                            <p className="text-xs text-gray-500">
+                              кв. {address.apartment}
+                            </p>
+                          )}
+                          {address.delivery && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {address.delivery.available
+                                ? `Доставка: ${address.delivery.price} ₸`
+                                : 'Доставка недоступна'}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <button className="text-red-500 text-sm">
-                        Удалить
-                      </button>
+                      <button className="text-red-500 text-sm">Удалить</button>
                     </div>
                   ))}
                 </div>
@@ -234,16 +363,31 @@ export default function Profile() {
               </div>
               {businesses.length > 0 ? (
                 <div className="space-y-2">
-                  {businesses.slice(0, 3).map((business) => (
-                    <div key={business.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  {businesses.slice(0, 3).map(business => (
+                    <div
+                      key={business.id}
+                      className="flex items-center p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M7 7h10M7 11h10M7 15h10" />
+                        <svg
+                          className="w-4 h-4 text-blue-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M7 7h10M7 11h10M7 15h10"
+                          />
                         </svg>
                       </div>
                       <div>
                         <p className="text-sm font-medium">{business.name}</p>
-                        <p className="text-xs text-gray-500">{business.address}</p>
+                        <p className="text-xs text-gray-500">
+                          {business.address}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -257,7 +401,7 @@ export default function Profile() {
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium">Способы оплаты</h3>
-                <button 
+                <button
                   onClick={() => setIsAddCardModalOpen(true)}
                   className="text-orange-500 text-sm"
                 >
@@ -268,25 +412,44 @@ export default function Profile() {
                 <p className="text-gray-500 text-sm">Загрузка...</p>
               ) : cards.length > 0 ? (
                 <div className="space-y-2">
-                  {cards.map((card) => (
-                    <div key={card.card_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {cards.map(card => (
+                    <div
+                      key={card.card_id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                          <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          <svg
+                            className="w-4 h-4 text-green-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
                           </svg>
                         </div>
                         <div>
-                          <p className="text-sm font-medium">**** **** **** {card.mask}</p>
-                          <p className="text-xs text-gray-500">Банковская карта</p>
+                          <p className="text-sm font-medium">
+                            **** **** **** {card.mask}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Банковская карта
+                          </p>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => deleteCard(card.card_id)}
                         disabled={cardActionLoading === card.card_id}
                         className="text-red-500 text-sm disabled:opacity-50"
                       >
-                        {cardActionLoading === card.card_id ? 'Удаление...' : 'Удалить'}
+                        {cardActionLoading === card.card_id
+                          ? 'Удаление...'
+                          : 'Удалить'}
                       </button>
                     </div>
                   ))}
@@ -310,8 +473,18 @@ export default function Profile() {
 
         {activeTab === 'Заказы' && (
           <div className="bg-white rounded-lg p-8 text-center">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
             </svg>
             <h3 className="text-lg font-medium text-gray-600 mb-2">Заказы</h3>
             <p className="text-gray-500">У вас пока нет заказов</p>
@@ -320,11 +493,25 @@ export default function Profile() {
 
         {activeTab === 'Избранное' && (
           <div className="bg-white rounded-lg p-8 text-center">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
             </svg>
-            <h3 className="text-lg font-medium text-gray-600 mb-2">Избранное</h3>
-            <p className="text-gray-500">Вы пока ничего не добавили в избранное</p>
+            <h3 className="text-lg font-medium text-gray-600 mb-2">
+              Избранное
+            </h3>
+            <p className="text-gray-500">
+              Вы пока ничего не добавили в избранное
+            </p>
           </div>
         )}
       </div>
