@@ -54,9 +54,7 @@ interface AddressContextType {
   setSelectedAddressId: (addressId: number | null) => Promise<void>
   getSelectedAddress: () => Address | null
   fetchSelectedAddress: (businessId: number) => Promise<Address | null>
-  searchAddresses: (
-    query: string
-  ) => Promise<{
+  searchAddresses: (query: string) => Promise<{
     success: boolean
     data?: AddressSearchResult[]
     message?: string

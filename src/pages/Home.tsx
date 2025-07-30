@@ -3,12 +3,13 @@ import { useCart } from '../contexts/CartContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useAddress } from '../contexts/AddressContext'
 import { useBusiness } from '../contexts/BusinessContext'
-import { Link } from 'react-router-dom'
+import { useNotifications } from '../contexts/NotificationContext'
+import { Link, useNavigate } from 'react-router-dom'
 import SmartAddressSelectionModal from '../components/SmartAddressSelectionModal'
 import BusinessSelectionModal from '../components/BusinessSelectionModal'
 import ActiveOrderCard from '../components/ActiveOrderCard'
-import OrderDetailsModal from '../components/OrderDetailsModal'
 import AddressDebugSimple from '../components/AddressDebugSimple'
+import NotificationsPanel from '../components/NotificationsPanel'
 
 import { createApiUrl, createApiUrlWithParams } from '../utils/api'
 
@@ -80,41 +81,16 @@ interface ActiveOrdersResponse {
   message: string
 }
 
-interface DeliveryCalculationResponse {
-  success: boolean
-  data: {
-    delivery_type: string
-    distance: number
-    delivery_cost: number
-    zone_name: string
-    coordinates: {
-      lat: number
-      lon: number
-    }
-    address: {
-      address_id: number
-      name: string
-      address: string
-      apartment?: string
-      entrance?: string
-      floor?: string
-      other?: string
-    }
-  }
-  message: string
-}
-
 export default function Home() {
+  const navigate = useNavigate()
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState('Популярные')
-  const [deliveryCost, setDeliveryCost] = useState<number | null>(null)
-  const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false)
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false)
   const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false)
-  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false)
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
+  const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] =
+    useState(false)
 
   // Состояние для активных заказов
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([])
@@ -125,42 +101,9 @@ export default function Home() {
   const { user } = useAuth()
   const { selectedAddress } = useAddress()
   const { selectedBusiness } = useBusiness()
+  const { unreadCount, addNotification, registerToken } = useNotifications()
 
   const filters = ['Популярные', 'Новинки', 'Акции']
-
-  // Функция для расчета стоимости доставки
-  const calculateDelivery = useCallback(async () => {
-    if (!selectedAddress || !selectedBusiness) {
-      setDeliveryCost(null)
-      return
-    }
-
-    try {
-      setIsCalculatingDelivery(true)
-      const response = await fetch(createApiUrl('/api/delivery/calculate'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          address_id: selectedAddress.address_id,
-          business_id: selectedBusiness.id,
-        }),
-      })
-
-      if (response.ok) {
-        const data: DeliveryCalculationResponse = await response.json()
-        if (data.success) {
-          setDeliveryCost(data.data.delivery_cost)
-        }
-      }
-    } catch (error) {
-      console.error('Error calculating delivery:', error)
-    } finally {
-      setIsCalculatingDelivery(false)
-    }
-  }, [selectedAddress, selectedBusiness])
 
   // Функция для получения активных заказов
   const fetchActiveOrders = useCallback(async () => {
@@ -177,7 +120,6 @@ export default function Home() {
       if (selectedBusiness) {
         url = createApiUrlWithParams('/api/orders/active', {
           limit: 5,
-          business_id: selectedBusiness.id,
         })
       }
 
@@ -265,17 +207,21 @@ export default function Home() {
     fetchData()
   }, [selectedBusiness]) // Добавляем selectedBusiness как зависимость
 
-  // Пересчитываем доставку при изменении адреса или магазина
-  useEffect(() => {
-    calculateDelivery()
-  }, [selectedAddress, selectedBusiness, calculateDelivery])
-
   // Загружаем активные заказы при изменении пользователя или магазина
   useEffect(() => {
     if (user) {
       fetchActiveOrders()
     }
   }, [user, selectedBusiness, fetchActiveOrders])
+
+  // Автоматическая регистрация FCM токена при входе пользователя
+  useEffect(() => {
+    if (user) {
+      registerToken().catch(error => {
+        console.error('Failed to register FCM token:', error)
+      })
+    }
+  }, [user, registerToken])
 
   // Периодическое обновление активных заказов каждые 30 секунд
   useEffect(() => {
@@ -293,13 +239,33 @@ export default function Home() {
   }
 
   const handleOrderClick = (orderId: number) => {
-    setSelectedOrderId(orderId)
-    setIsOrderDetailsModalOpen(true)
+    // Переходим на страницу заказа вместо открытия модального окна
+    navigate(`/orders/${orderId}`)
   }
 
-  const handleCloseOrderDetails = () => {
-    setIsOrderDetailsModalOpen(false)
-    setSelectedOrderId(null)
+  // Функция для тестирования уведомлений (временная)
+  const testNotification = () => {
+    const notifications = [
+      {
+        title: 'Заказ готов!',
+        body: 'Ваш заказ #12345 готов к получению',
+        type: 'order' as const,
+      },
+      {
+        title: 'Скидка 20%!',
+        body: 'Специальное предложение только сегодня',
+        type: 'promotion' as const,
+      },
+      {
+        title: 'Доставка в пути',
+        body: 'Курьер уже направляется к вам',
+        type: 'info' as const,
+      },
+    ]
+
+    const randomNotification =
+      notifications[Math.floor(Math.random() * notifications.length)]
+    addNotification(randomNotification)
   }
 
   return (
@@ -316,13 +282,40 @@ export default function Home() {
               </span>
             </Link>
 
-            {/* Бонусы и аватар */}
+            {/* Бонусы, уведомления и аватар */}
             <div className="flex items-center space-x-3">
               {user && (
                 <div className="flex items-center space-x-1 bg-gray-100 px-3 py-1.5 rounded-full">
                   <span className="text-sm">🎁</span>
                   <span className="text-sm font-semibold text-black">120</span>
                 </div>
+              )}
+
+              {/* Кнопка уведомлений */}
+              {user && (
+                <button
+                  onClick={() => setIsNotificationsPanelOpen(true)}
+                  className="relative w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
               )}
 
               <Link
@@ -480,7 +473,7 @@ export default function Home() {
           </div>
 
           {/* Доставка */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="inline-flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg">
               <span className="text-sm font-medium text-black">Доставка</span>
               {isCalculatingDelivery ? (
@@ -493,7 +486,7 @@ export default function Home() {
                 <span className="text-sm text-gray-500">—</span>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -527,6 +520,14 @@ export default function Home() {
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
+                  </button>
+                  {/* Кнопка тестирования уведомлений (временная) */}
+                  <button
+                    onClick={testNotification}
+                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Тестовое уведомление"
+                  >
+                    🔔
                   </button>
                   {activeOrders.length > 0 && (
                     <Link
@@ -566,9 +567,9 @@ export default function Home() {
                         URL:{' '}
                         {createApiUrlWithParams('/api/orders/active', {
                           limit: 5,
-                          ...(selectedBusiness
-                            ? { business_id: selectedBusiness.id }
-                            : {}),
+                          // ...(selectedBusiness
+                          //   ? { business_id: selectedBusiness.id }
+                          //   : {}),
                         })}
                       </p>
                       <p>
@@ -807,10 +808,10 @@ export default function Home() {
         onClose={() => setIsBusinessModalOpen(false)}
       />
 
-      <OrderDetailsModal
-        isOpen={isOrderDetailsModalOpen}
-        onClose={handleCloseOrderDetails}
-        orderId={selectedOrderId}
+      {/* Панель уведомлений */}
+      <NotificationsPanel
+        isOpen={isNotificationsPanelOpen}
+        onClose={() => setIsNotificationsPanelOpen(false)}
       />
 
       {/* Debug component */}

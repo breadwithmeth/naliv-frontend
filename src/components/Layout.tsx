@@ -23,7 +23,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Основной контент */}
-      <main className={hasOwnHeader ? 'pb-bottom-nav' : 'pt-20 pb-bottom-nav'}>
+      <main className={hasOwnHeader ? 'pb-bottom-nav' : 'pb-bottom-nav'}>
         <Outlet />
       </main>
 

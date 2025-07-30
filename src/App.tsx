@@ -4,6 +4,7 @@ import { BusinessProvider } from './contexts/BusinessContext'
 import { CartProvider } from './contexts/CartContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { AddressProvider } from './contexts/AddressContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 import { useBusiness } from './contexts/BusinessContext'
 import { useCart } from './contexts/CartContext'
 import Layout from './components/Layout'
@@ -80,7 +81,9 @@ function App() {
       <CartProvider>
         <AuthProvider>
           <AddressProvider>
-            <AppContent />
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
           </AddressProvider>
         </AuthProvider>
       </CartProvider>

@@ -1,0 +1,15 @@
+{
+  "env": {
+    "serviceworker": true,
+    "browser": true
+  },
+  "globals": {
+    "importScripts": "readonly",
+    "firebase": "readonly",
+    "clients": "readonly",
+    "self": "readonly"
+  },
+  "rules": {
+    "no-undef": "off"
+  }
+}

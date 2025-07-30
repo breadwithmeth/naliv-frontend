@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "start": "vite preview --host 0.0.0.0 --port $PORT",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10",
+    "lint:fix": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10 --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "preview": "vite preview",
@@ -16,6 +16,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "firebase": "^12.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.2",

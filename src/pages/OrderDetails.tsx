@@ -5,7 +5,21 @@ import { createApiUrl } from '../utils/api'
 
 // Функция для получения информации о статусе
 const getStatusInfo = (status: number, isCanceled: number) => {
+  console.log(
+    'getStatusInfo called with status:',
+    status,
+    'type:',
+    typeof status,
+    'isCanceled:',
+    isCanceled,
+    'type:',
+    typeof isCanceled
+  )
+  console.log('Checking status === 66:', status === 66)
+  console.log('Checking status == 66:', status == 66)
+
   if (isCanceled === 1) {
+    console.log('Order is canceled')
     return {
       name: 'Отменен',
       color: '#dc2626',
@@ -51,14 +65,16 @@ const getStatusInfo = (status: number, isCanceled: number) => {
         description: 'Заказ успешно доставлен',
       }
     case 66:
+      console.log('Status 66 matched - returning Ожидает оплаты')
       return {
         name: 'Ожидает оплаты',
         color: '#dc2626',
         description: 'Заказ ожидает оплаты',
       }
     default:
+      console.log('Unknown status:', status, 'type:', typeof status)
       return {
-        name: 'Неизвестный статус',
+        name: `Неизвестный статус (${status})`,
         color: '#6b7280',
         description: 'Статус заказа неизвестен',
       }
@@ -70,20 +86,21 @@ interface OrderDetails {
   order_uuid: string
   user_id: number
   business_id: number
-  address_id: number
+  address_id: number | null
   delivery_price: number
   bonus: number
   extra?: string
-  payment_id?: string
+  payment_id?: string | null
   log_timestamp: string
+  is_canceled: number
   items: Array<{
     relation_id: number
     item_id: number
-    amount: number
-    price: number
+    amount: string // API возвращает строку
+    price: string // API возвращает строку
     item_name: string
     item_code: string
-    item_img: string
+    item_img?: string
   }>
   business: {
     id: number
@@ -99,7 +116,7 @@ interface OrderDetails {
     status: number
     isCanceled: number
     log_timestamp: string
-  }
+  } | null
   cost: {
     cost: number
     service_fee: number
@@ -145,6 +162,9 @@ export default function OrderDetails() {
         if (response.ok) {
           const data: OrderDetailsResponse = await response.json()
           if (data.success) {
+            console.log('Order received:', data.data.order)
+            console.log('Order status object:', data.data.order.status)
+            console.log('Order is_canceled:', data.data.order.is_canceled)
             setOrder(data.data.order)
           } else {
             setError(data.message || 'Не удалось загрузить заказ')
@@ -265,7 +285,7 @@ export default function OrderDetails() {
       </div>
 
       {/* Content */}
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 space-y-4">
         {/* Статус заказа */}
         <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
@@ -276,27 +296,46 @@ export default function OrderDetails() {
               className="px-3 py-1 text-sm font-medium rounded-full"
               style={{
                 backgroundColor:
-                  getStatusInfo(order.status.status, order.status.isCanceled)
-                    .color + '20',
+                  getStatusInfo(
+                    Number(order.status?.status) || 0,
+                    Number(order.status?.isCanceled) ||
+                      Number(order.is_canceled) ||
+                      0
+                  ).color + '20',
                 color: getStatusInfo(
-                  order.status.status,
-                  order.status.isCanceled
+                  Number(order.status?.status) || 0,
+                  Number(order.status?.isCanceled) ||
+                    Number(order.is_canceled) ||
+                    0
                 ).color,
               }}
             >
-              {getStatusInfo(order.status.status, order.status.isCanceled).name}
+              {
+                getStatusInfo(
+                  Number(order.status?.status) || 0,
+                  Number(order.status?.isCanceled) ||
+                    Number(order.is_canceled) ||
+                    0
+                ).name
+              }
             </span>
           </div>
           <p className="text-sm text-gray-600">
             {
-              getStatusInfo(order.status.status, order.status.isCanceled)
-                .description
+              getStatusInfo(
+                Number(order.status?.status) || 0,
+                Number(order.status?.isCanceled) ||
+                  Number(order.is_canceled) ||
+                  0
+              ).description
             }
           </p>
-          <p className="text-xs text-gray-500 mt-2">
-            Обновлено:{' '}
-            {new Date(order.status.log_timestamp).toLocaleString('ru-RU')}
-          </p>
+          {order.status?.log_timestamp && (
+            <p className="text-xs text-gray-500 mt-2">
+              Обновлено:{' '}
+              {new Date(order.status.log_timestamp).toLocaleString('ru-RU')}
+            </p>
+          )}
         </div>
 
         {/* Информация о магазине */}
@@ -361,6 +400,34 @@ export default function OrderDetails() {
                 </span>
               </div>
             )}
+            {/* Временная отладочная информация */}
+            <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
+              <div>Статус объект: {order.status ? 'Есть' : 'Отсутствует'}</div>
+              <div>
+                Статус код: {order.status?.status} (тип:{' '}
+                {typeof order.status?.status})
+              </div>
+              <div>
+                isCanceled (статус): {order.status?.isCanceled} (тип:{' '}
+                {typeof order.status?.isCanceled})
+              </div>
+              <div>
+                is_canceled (заказ): {order.is_canceled} (тип:{' '}
+                {typeof order.is_canceled})
+              </div>
+              <div>Number(статус): {Number(order.status?.status)}</div>
+              <div>
+                Результат getStatusInfo:{' '}
+                {
+                  getStatusInfo(
+                    Number(order.status?.status) || 0,
+                    Number(order.status?.isCanceled) ||
+                      Number(order.is_canceled) ||
+                      0
+                  ).name
+                }
+              </div>
+            </div>
           </div>
         </div>
 
@@ -413,7 +480,11 @@ export default function OrderDetails() {
                 <span className="text-gray-600">Стоимость товаров:</span>
                 <span className="font-medium">
                   {order.items
-                    .reduce((total, item) => total + item.price, 0)
+                    .reduce(
+                      (total, item) =>
+                        total + parseFloat(item.price) * parseInt(item.amount),
+                      0
+                    )
                     .toFixed(2)}{' '}
                   ₸
                 </span>
@@ -438,7 +509,9 @@ export default function OrderDetails() {
                   <span className="text-orange-500">
                     {(
                       order.items.reduce(
-                        (total, item) => total + item.price,
+                        (total, item) =>
+                          total +
+                          parseFloat(item.price) * parseInt(item.amount),
                         0
                       ) +
                       order.delivery_price -
@@ -484,10 +557,13 @@ export default function OrderDetails() {
                   </div>
                   <div className="text-right ml-3">
                     <p className="font-semibold text-orange-500">
-                      {item.price.toFixed(2)} ₸
+                      {(parseFloat(item.price) * parseInt(item.amount)).toFixed(
+                        2
+                      )}{' '}
+                      ₸
                     </p>
                     <p className="text-xs text-gray-500">
-                      за {item.amount} шт.
+                      {parseFloat(item.price).toFixed(2)} ₸ × {item.amount} шт.
                     </p>
                   </div>
                 </div>
